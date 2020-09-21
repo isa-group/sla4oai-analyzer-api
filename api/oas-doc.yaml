@@ -3,8 +3,7 @@ info:
   version: 1.0.0
   title: AnalysisRequest list
   description: >-
-    This is an OpenAPI Specification created by oas-wizard
-    (https://github.com/pafmon/oas-wizard)  
+    This is an OpenAPI Specification for the SLA4OAI Analyzer
   contact:
     name: PabloFM
     email: pablofm@us.es
@@ -15,11 +14,15 @@ info:
 paths:
   /api/v1/analysisRequests:
     post:
-      description: Creates a new analysisRequest
+      description: Creates a new analysisRequest, currently only operation= "validity" is supported
       operationId: addAnalysisRequest
       responses:
-        '201':
-          description: analysisRequest created
+        '200':
+          description: analysis developed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/analysisResponse'
         default:
           description: unexpected error
           content:
@@ -59,9 +62,18 @@ components:
         operation:
           type: string
           minLength: 1
-        configuration:
-          type: string
-          minLength: 1
       required:
         - analysisId
         - operation
+    analysisResponse:
+      type: object
+      properties:
+        valid:
+          type: boolean
+        explaining:
+          type: array
+          items:
+            type: string
+      required:
+        - valid
+        - explaining

@@ -7,6 +7,7 @@ var analyzer = require("./analyzer/operations");
 function validate(req,res){
 
   var params = req.analysisRequest.value;
+  console.log("Validity analysis over: <"+params.pricingURL+">");
 
     var result = {
       valid : false,
@@ -22,7 +23,10 @@ function validate(req,res){
   var pricing; 
 
   request(params.pricingURL,{}, (err, resCode, body) => {    
-    if (err) { return console.log(err); }
+    if (err) { 
+        console.log(err);
+        res.send(err); 
+    }
 
     try {
     
@@ -30,7 +34,8 @@ function validate(req,res){
     
       result.valid = analyzer.validity(pricing,{});
       result.explaining = analyzer.getValidityExplainig();
-    
+      console.log("   Validity Result -> "+result.valid);
+
       res.send(result);
 
     } catch (e) {
