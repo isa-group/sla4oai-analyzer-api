@@ -1,0 +1,67 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: AnalysisRequest list
+  description: >-
+    This is an OpenAPI Specification created by oas-wizard
+    (https://github.com/pafmon/oas-wizard)  
+  contact:
+    name: PabloFM
+    email: pablofm@us.es
+    url: 'http://www.isa.us.es'
+  license:
+    name: MIT
+    url: 'http://opensource.org/licenses/MIT'
+paths:
+  /api/v1/analysisRequests:
+    post:
+      description: Creates a new analysisRequest
+      operationId: addAnalysisRequest
+      responses:
+        '201':
+          description: analysisRequest created
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+      requestBody:
+        x-name: analysisRequest
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/analysisRequest'
+        description: AnalysisRequest to be created
+        required: true
+components:
+  schemas:
+    errorModel:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+    analysisRequest:
+      type: object
+      properties:
+        analysisId:
+          type: string
+          minLength: 1
+        pricingURL:
+          type: string
+          minLength: 1
+        operation:
+          type: string
+          minLength: 1
+        configuration:
+          type: string
+          minLength: 1
+      required:
+        - analysisId
+        - operation
