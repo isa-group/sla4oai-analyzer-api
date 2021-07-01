@@ -114,6 +114,47 @@ function existsAmbiguityConflict(limits, planName, path, method, metric) {
     return condition;
 }
 
+function existsCapacityConflictCheck(limit1, planName, path, method, metric) {
+    // [P1 L2.4] There is no {capacity conflict}, that is, the limitation does not surpass the associated {capacity}.
+    let existsInconsistency;
+
+    if (limit1.period && capacity[metric] && capacity[metric].max && capacity[metric].max !== 'Infinity') {
+        const N1 = aux.normalizedPeriod(limit1.period, metric, capacity);
+
+        const PU1 = aux.PU(limit1, N1, metric, capacity);
+        const PU2 = aux.PU(limit1, null, metric, capacity);
+
+        if (PU1 !== Infinity && PU2 !== Infinity) {
+            existsInconsistency = PU1 > 1 || PU2 > 1;
+        } else {
+            existsInconsistency = true;
+        }
+    } else {
+        existsInconsistency = false;
+    }
+
+    const condition = existsInconsistency === true;
+
+    if (condition === true) {
+        logger.validationWarning(`             L2.4 CAPACITY CONFLICT: in ${planName}>${path}>${method}>${metric} ('${aux.printLimit(limit1)}')`);
+    } else {
+        // logger.validation(`             L2.4 NO CAPACITY CONFLICT (${aux.printLimit(limit1)}) OK`);
+    }
+
+    return condition;
+}
+
+// [P1 L2.4] There are no {capacity conflicts}
+function existsCapacityConflict(limits, planName, path, method, metric) {
+    // [P1 L2.4] There is no {capacity conflict}, that is, the limitation does not surpass the associated {capacity}
+    let existsCapacityConflicts = false;
+    for (let i = 0; i < limits.length; i += 1) {
+        const limit1 = limits[i];
+        existsCapacityConflicts = existsCapacityConflicts || existsCapacityConflictCheck(limit1, planName, path, method, metric);
+    }
+    return existsCapacityConflicts;
+}
+
 // [P1   L3.2] There are no { consistency conflicts }
 function existsPlanConsistencyConflict(plan, planName) {
     // [P1   L3.2] There are no { consistency conflicts } between any pair of its { limitations }, that is, two { limitations } over two related { metrics } (by a certain factor) can not be met at the same time.
@@ -350,20 +391,20 @@ function isValidLimit(limit, planName, path, method, metric) {
     }
 
     // [P1 L1.2] It is consistent with its associated {capacity}, that is, it does not surpases the associated {capacity}.
-    let existsLimitsConsistencyConflictCapacity = false;
+    /*let existsLimitsConsistencyConflictCapacity = false;
     if (capacity[metric]) {
         const metricCapacity = capacity[metric];
         existsLimitsConsistencyConflictCapacity = existsLimitsConsistencyConflictCheck(limit, metricCapacity, planName, path, method, metric);
-    }
+    }*/
 
-    const condition = isNaturalNumber === true && existsLimitsConsistencyConflictCapacity !== true;
+    const condition = isNaturalNumber === true; // && existsLimitsConsistencyConflictCapacity !== true;
 
     if (condition !== true) {
         // logger.info("\x1b[31m", "isValidLimit", condition, "\x1b[0m");
         // logger.info(`In isValidLimit: ${condition}\n    isNaturalNumber=${isNaturalNumber} && !existsLimitsConsistencyConflictCapacity=${!existsLimitsConsistencyConflictCapacity}`);
         logger.validationWarning(`           NOK LIMIT VALIDITY in ${planName}>${path}>${method}>${metric} (${aux.printLimit(limit)}) NOK`);
         logger.validationWarning(`             isNaturalNumber=${isNaturalNumber}`);
-        logger.validationWarning(`             !existsLimitsConsistencyConflictCapacity=${existsLimitsConsistencyConflictCapacity !== true}`);
+        //logger.validationWarning(`             !existsLimitsConsistencyConflictCapacity=${existsLimitsConsistencyConflictCapacity !== true}`);
     } else {
         // logger.validation(`           LIMIT VALIDITY (${aux.printLimit(limit)}) OK`);
     }
@@ -389,8 +430,11 @@ function isValidLimitation(limitation, planName, path, method, metric) {
     // [P1 L2.3] There are no {ambiguity conflict} between any pair of its {limits}, that is, two limits use the same period.
     const existsAmbiguityConflicts = existsAmbiguityConflict(limitation, planName, path, method, metric);
 
+    // [P1 L2.4] There is no {capacity conflict}, that is, the limitation does not surpass the associated {capacity}.
+    const existsCapacityConflicts = existsCapacityConflict(limitation, planName, path, method, metric);
+
     // Merge conditions
-    const condition = everyLimitIsValid === true && existsConsistencyConflicts !== true && existsAmbiguityConflicts !== true;
+    const condition = everyLimitIsValid === true && existsConsistencyConflicts !== true && existsAmbiguityConflicts !== true && existsCapacityConflicts !== true;
 
     if (condition !== true) {
         // logger.info("\x1b[31m", "isValidLimitation", condition, "\x1b[0m");
@@ -399,6 +443,7 @@ function isValidLimitation(limitation, planName, path, method, metric) {
         logger.validationWarning(`           everyLimitIsValid=${everyLimitIsValid}`);
         logger.validationWarning(`           !existsConsistencyConflicts=${existsConsistencyConflicts !== true}`);
         logger.validationWarning(`           !existsAmbiguityConflicts=${existsAmbiguityConflicts !== true}`);
+        logger.validationWarning(`           !existsCapacityConflicts=${existsCapacityConflicts !== true}`);
     } else {
         logger.validation(`         LIMITATION VALIDITY (${aux.printLimitatation(limitation)}) OK`);
     }
