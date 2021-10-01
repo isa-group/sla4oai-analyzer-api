@@ -385,7 +385,7 @@ function areMetricValidCheck(pricing) {
 function isValidLimit(limit, planName, path, method, metric) {
     logger.validation(`         CHECKING LIMIT VALIDITY (${aux.printLimit(limit)})...`);
     // [P1 L1.1] Its {threshold} is a natural number.
-    const isNaturalNumber = limit.max >= 0 || limit.max === 'unlimited';
+    const isNaturalNumber = limit.custom || limit.max >= 0 || limit.max === 'unlimited';
     if (isNaturalNumber !== true) {
         logger.validationWarning(`             !isNaturalNumber in  ${planName}>${path}>${method}>${metric}`);
     }

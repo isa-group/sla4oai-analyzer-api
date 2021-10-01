@@ -103,7 +103,11 @@ function projectUniform(N, M, Mp) {
 }
 
 function printLimit(limit) {
-    if (limit.max >= 0 && limit.period && limit.period.amount >= 0 && limit.period.unit) {
+    if (limit.custom && limit.period && limit.period.amount >= 0 && limit.period.unit) {
+        return `Custom per ${limit.period.amount}/${limit.period.unit}`;
+    } if (limit.custom && !limit.period) {
+        return `Custom per request (no period)`;
+    } if (limit.max >= 0 && limit.period && limit.period.amount >= 0 && limit.period.unit) {
         return `${limit.max} per ${limit.period.amount}/${limit.period.unit}`;
     } if (limit.max >= 0 && !limit.period) {
         return `${limit.max} per request (no period)`;
