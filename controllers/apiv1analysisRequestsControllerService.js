@@ -22,29 +22,41 @@ function validate(req,res){
 */
   var pricing; 
 
-  request(params.pricingURL,{}, (err, resCode, body) => {    
-    if (err) { 
-        console.log(err);
-        res.send(err); 
-    }
+  if (params.pricingURL) {
+    request(params.pricingURL,{}, (err, resCode, body) => {    
+      if (err) { 
+          console.log(err);
+          res.send(err); 
+      }
 
+      try {
+      
+        pricing = yaml.safeLoad(body);
+      
+        result.valid = analyzer.validity(pricing,{});
+        result.explaining = analyzer.getValidityExplainig();
+        console.log("   Validity Result -> "+result.valid);
+
+        res.send(result);
+
+      } catch (e) {
+
+        res.send(e);
+
+      }
+
+    });
+  } else if (params.pricing) {
     try {
-    
-      pricing = yaml.safeLoad(body);
-    
+      pricing = JSON.parse(JSON.stringify(params.pricing));
       result.valid = analyzer.validity(pricing,{});
       result.explaining = analyzer.getValidityExplainig();
       console.log("   Validity Result -> "+result.valid);
-
       res.send(result);
-
     } catch (e) {
-
       res.send(e);
-
     }
-
-  });
+  }
 
 
 }
