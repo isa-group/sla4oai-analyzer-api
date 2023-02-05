@@ -1,5 +1,6 @@
 /* eslint-disable indent */
 const config = require('../configurations');
+const { minimatch } = require('minimatch');
 
 const { logger } = config;
 
@@ -125,6 +126,50 @@ function printLimitatation(limitation) {
     return res;
 }
 
+function deglobPricing(globbedPricing) {
+    var pricing = JSON.parse(JSON.stringify(globbedPricing));
+    for (const planName1 in pricing.plans) {
+        for (const planName2 in pricing.plans) {
+            if (planName1 !== planName2) {
+                pricing.plans[planName1] = deglobEndpoints(pricing.plans[planName1], pricing.plans[planName2]);
+            }
+        }
+    }
+    return pricing;
+}
+
+function deglobEndpoints(plan1, plan2) {
+    var deglobbedPlan1 = JSON.parse(JSON.stringify(plan1));
+    for (const [planLimsName1, planLims1] of Object.entries(plan1)) {
+        for (const [limsPathName1, limsPath1] of Object.entries(planLims1)) {
+            if (limsPathName1.indexOf('*') === -1) continue;
+            for (const [planLimsName2, planLims2] of Object.entries(plan2)) {
+                if (planLimsName1 !== planLimsName2) continue;
+                for (const [limsPathName2, limsPath2] of Object.entries(planLims2)) {
+                    for (const [limsPathMethodName2, limsPathMethod2] of Object.entries(limsPath2)) {
+                        if (Object.keys(plan1[planLimsName1]).indexOf(limsPathName2) === -1) {
+                            const globbedEndpoint = limsPathName1.replace('*', '**');
+                            if (minimatch(limsPathName2, globbedEndpoint)) {
+                                if (!deglobbedPlan1[planLimsName1][limsPathName2]) deglobbedPlan1[planLimsName1][limsPathName2] = {};
+                                if (plan1[planLimsName1][limsPathName1]['all'] && !plan1[planLimsName1][limsPathName1][limsPathMethodName2]) {
+                                    deglobbedPlan1[planLimsName1][limsPathName2][limsPathMethodName2] = plan1[planLimsName1][limsPathName1]['all'];
+                                } else if (plan1[planLimsName1][limsPathName1][limsPathMethodName2]) {
+                                    deglobbedPlan1[planLimsName1][limsPathName2][limsPathMethodName2] = plan1[planLimsName1][limsPathName1][limsPathMethodName2];
+                                }
+                            }
+                        } else {
+                            if (plan1[planLimsName1][limsPathName1]['all'] && !plan1[planLimsName1][limsPathName1][limsPathMethodName2]) {
+                                deglobbedPlan1[planLimsName1][limsPathName2][limsPathMethodName2] = plan1[planLimsName1][limsPathName1]['all'];
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return deglobbedPlan1;
+}
+
 // ****************************** END AUX FUNCTIONS ****************************** //
 
 module.exports = {
@@ -134,4 +179,5 @@ module.exports = {
     printLimit,
     projectBurst,
     projectUniform,
+    deglobPricing
 };

@@ -1,0 +1,20 @@
+project:
+  name: 'Project name' # Your project name, e.g. Cue-to-cue
+  owner: 'CS169L-23' # Do not change
+  teamId: 'XX' # Your team number, e.g. 02
+  identities:
+    pivotal: 'https://www.pivotaltracker.com/n/projects/XXXXXXX' # Your Pivotal project URL
+    heroku: 'https://xxxxxxxx.herokuapp.com' # Your Heroku app URL
+  members:
+    member1: # Add all project members
+      name: 'Governify' # Member 1 name
+      surname: 'Auditor' # Member 1 last name
+      githubUsername: 'governifyauditor' # Member 1 GitHub username
+      pivotalUsername: 'governifyauditor' # Member 1 Pivotal username
+      herokuEmail: 'governify.auditor@gmail.com' # Member 1 Heroku username
+    member2:
+      name: 'Mem2'
+      surname: 'Last2'
+      githubUsername: 'mygh2'
+      pivotalUsername: 'mypt2'
+      herokuEmail: 'hkmail2@berkeley.edu'  

@@ -532,24 +532,26 @@ function isValidPlan(plan, planName) {
 }
 
 // P1   [L4   Valid pricing] A {pricing} is valid if:
-function isValidPricing(pricing, configuration) {
+function isValidPricing(globbedPricing, configuration) {
 
     for (const prop in configuration) {
-        if (!Object.prototype.hasOwnProperty.call(pricing, prop)) {
-            pricing[prop] = configuration[prop];
+        if (!Object.prototype.hasOwnProperty.call(globbedPricing, prop)) {
+            globbedPricing[prop] = configuration[prop];
         }
     }
     logger.validation('   CHECKING PRICING VALIDITY...');
 
-    if (pricing.capacity) {
+    if (globbedPricing.capacity) {
         resetCapacity();
         logger.validationWarning(`   UPDATING CAPACITY FROM '${JSON.stringify(capacity)}'...`);
-        setCapacity(pricing.capacity);
+        setCapacity(globbedPricing.capacity);
         logger.validationWarning(`     UPDATED TO '${JSON.stringify(capacity)}'`);
     } else {
         resetCapacity();
         logger.validationWarning(`   USING DEFAULT CAPACITY '${JSON.stringify(capacity)}'`);
     }
+
+    const pricing = aux.deglobPricing(globbedPricing);
 
     // [P1 L4.1] All its {plans} are valid.
     let everyPlanIsValid = true;
