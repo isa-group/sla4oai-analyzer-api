@@ -37,12 +37,12 @@ function existsLimitsConsistencyConflictCheck(limit1, limit2, planName, path, me
             // inconsistentes si el porcentaje de utilización de la "capacidad de la limitación con periodo más largo" es menor que "el porcentaje de utilización de la capacidad del periodo más corto"
             if (N1 >= N2) {
                 // logger.debug(`${PU1} => ${PU2}: ${PU1 >= PU2}`);
-                existsInconsistency = PU1 > PU2;
+                existsInconsistency = PU1 < PU2;
             } else if (N1 === N2 && PU1 === PU2) {
                 existsInconsistency = false;
             } else {
                 // logger.debug(`${PU1} < ${PU2}: ${PU1 < PU2}`);
-                existsInconsistency = PU1 < PU2;
+                existsInconsistency = PU1 > PU2;
             }
         } else {
             // logger.debug(`Skipping ${PU1} or ${PU2} due to max=unlimited`);
