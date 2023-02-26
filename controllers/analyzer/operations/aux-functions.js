@@ -85,7 +85,7 @@ function normalizedPeriod(p, metric, capacity) {
 function PU(limit, normalizedPeriodParam, metric, capacity) {
     const limitMax = !Number.isNaN(Number(limit.max)) ? limit.max : Infinity;
     if (normalizedPeriodParam && capacity[metric] && capacity[metric].max) {
-        return limitMax / normalizedPeriodParam / capacity[metric].max;
+        return limitMax / normalizedPeriodParam;
     } if (capacity[metric] && capacity[metric].max) {
         return limitMax / capacity[metric].max;
     }
