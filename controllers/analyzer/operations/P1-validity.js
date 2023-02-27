@@ -30,8 +30,8 @@ function existsLimitsConsistencyConflictCheck(limit1, limit2, planName, path, me
         const N1 = aux.normalizedPeriod(limit1.period, metric, capacity);
         const N2 = aux.normalizedPeriod(limit2.period, metric, capacity);
 
-        const PU1 = aux.PU(limit1, N1, metric, capacity);
-        const PU2 = aux.PU(limit2, N2, metric, capacity);
+        const PU1 = !Number.isNaN(Number(limit1.max)) ? limit1.max : Infinity;
+        const PU2 = !Number.isNaN(Number(limit2.max)) ? limit2.max : Infinity;
 
         if (PU1 !== Infinity && PU2 !== Infinity) {
             // inconsistentes si el porcentaje de utilización de la "capacidad de la limitación con periodo más largo" es menor que "el porcentaje de utilización de la capacidad del periodo más corto"
