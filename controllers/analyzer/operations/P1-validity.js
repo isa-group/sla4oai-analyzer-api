@@ -121,7 +121,6 @@ function existsCapacityConflictCheck(limits, planName, path, method, metric, rat
     let maxPUs = [];
 
     for (let i = 0; i < limits.length; i += 1) {
-        console.log('Pasando');
         if (limits[i].period && capacity[metric] && capacity[metric].max && capacity[metric].max !== 'Infinity') {
             const N1 = aux.normalizedPeriod(limits[i].period, metric, capacity);
 
@@ -131,7 +130,7 @@ function existsCapacityConflictCheck(limits, planName, path, method, metric, rat
             maxPUs.push(PU2);
         }
     }
-    if (capacity[metric].max && capacity[metric].max !== 'Infinity') {
+    if (capacity[metric] && capacity[metric].max && capacity[metric].max !== 'Infinity') {
         let maxminPU = Math.max(...minPUs);
         let minmaxPU = Math.min(...maxPUs);
         if (maxminPU !== Infinity && minmaxPU !== Infinity) {
