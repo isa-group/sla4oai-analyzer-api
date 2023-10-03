@@ -161,7 +161,11 @@ function deglobEndpoints(plan1, plan2) {
                             }
                         } else {
                             if (plan1[planLimsName1][limsPathName1]['all'] && !plan1[planLimsName1][limsPathName1][limsPathMethodName2]) {
-                                deglobbedPlan1[planLimsName1][limsPathName2][limsPathMethodName2] = plan1[planLimsName1][limsPathName1]['all'];
+                                for (const [limsPathMethodMetricName, limsPathMethodMetric] of Object.entries(plan1[planLimsName1][limsPathName1]['all'])) {
+                                    if (!(limsPathMethodMetricName in Object.keys(limsPathMethod2))) {
+                                        deglobbedPlan1[planLimsName1][limsPathName2][limsPathMethodName2][limsPathMethodMetricName] = plan1[planLimsName1][limsPathName1]['all'][limsPathMethodMetricName];
+                                    }
+                                }
                             }
                         }
                     }
