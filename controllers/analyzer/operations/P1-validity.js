@@ -7,6 +7,7 @@ const { Writable } = require('stream');
 const { logger } = require('../configurations/');
 
 var explainig = "init";
+var showDebug = false;
 
 // ************************** BEGIN P1 VALIDITY DETECTION ************************** //
 let capacity;
@@ -27,8 +28,8 @@ function existsLimitsConsistencyConflictCheck(limit1, limit2, planName, path, me
     let existsInconsistency;
 
     if (limit1.period && limit2.period) {
-        const N1 = aux.normalizedPeriod(limit1.period, metric, capacity);
-        const N2 = aux.normalizedPeriod(limit2.period, metric, capacity);
+        const N1 = aux.normalizedPeriod(limit1.period, metric, capacity, showDebug);
+        const N2 = aux.normalizedPeriod(limit2.period, metric, capacity, showDebug);
 
         const PU1 = !Number.isNaN(Number(limit1.max)) ? limit1.max : Infinity;
         const PU2 = !Number.isNaN(Number(limit2.max)) ? limit2.max : Infinity;
@@ -122,7 +123,7 @@ function existsCapacityConflictCheck(limits, planName, path, method, metric, rat
 
     for (let i = 0; i < limits.length; i += 1) {
         if (limits[i].period && capacity[metric] && capacity[metric].max && capacity[metric].max !== 'Infinity') {
-            const N1 = aux.normalizedPeriod(limits[i].period, metric, capacity);
+            const N1 = aux.normalizedPeriod(limits[i].period, metric, capacity, showDebug);
 
             const PU1 = aux.PU(limits[i], N1, metric, capacity);
             minPUs.push(PU1);
@@ -232,15 +233,15 @@ function existsCostConsistencyConflictCheck(pricing, plan1, plan2, limitations1P
     }
 
     if (plan1.pricing.period && plan2.pricing.period) {
-        const PL1 = aux.normalizedPeriod(plan1.pricing.period, null, capacity);
-        const PL2 = aux.normalizedPeriod(plan2.pricing.period, null, capacity);
+        const PL1 = aux.normalizedPeriod(plan1.pricing.period, null, capacity, showDebug);
+        const PL2 = aux.normalizedPeriod(plan2.pricing.period, null, capacity, showDebug);
 
         const CU1 = plan1.pricing.cost / PL1;
         const CU2 = plan2.pricing.cost / PL2;
 
         // if PU1 > PU2 --> cost1 > cost2
-        const N1 = aux.normalizedPeriod(limitations1PathMethodMetricLimit.period, null, capacity);
-        const N2 = aux.normalizedPeriod(limitations2PathMethodMetricLimit.period, null, capacity);
+        const N1 = aux.normalizedPeriod(limitations1PathMethodMetricLimit.period, null, capacity, showDebug);
+        const N2 = aux.normalizedPeriod(limitations2PathMethodMetricLimit.period, null, capacity, showDebug);
 
         const PU1 = aux.PU(limitations1PathMethodMetricLimit, N1, null, capacity);
         const PU2 = aux.PU(limitations2PathMethodMetricLimit, N2, null, capacity);
@@ -308,15 +309,15 @@ function existsCostConsistencyConflict(plan1, plan2, plan1Name, plan2Name, prici
                                                                             logger.validationWarning(`             L4.2 COST CONSISTENCY CONFLICT in plan '${plan1Name}'|'${plan2Name}' in >${plan1LimitationsName}>${limitations1PathName}>${limitations1PathMethodName}>${limitations1PathMethodMetricName} ('${aux.printLimit(limitations1PathMethodMetricLimit)}' > '${aux.printLimit(limitations2PathMethodMetricLimit)}' AND NOT '${plan1.pricing.cost} >= ${plan2.pricing.cost}')`);
                                                                         }
                                                                     } else {
-                                                                        logger.debug(`existsCostConsistencyConflict - Cannot compare non-period pricings cost in (${JSON.stringify(plan1.pricing)} and ${JSON.stringify(plan2.pricing)})`);
+                                                                        if (showDebug) logger.debug(`existsCostConsistencyConflict - Cannot compare non-period pricings cost in (${JSON.stringify(plan1.pricing)} and ${JSON.stringify(plan2.pricing)})`);
                                                                         // continue;
                                                                     }
                                                                 } else {
-                                                                    logger.debug(`existsCostConsistencyConflict - Cannot compare NaN pricings cost in (${JSON.stringify(plan1.pricing)} and ${JSON.stringify(plan2.pricing)})`);
+                                                                    if (showDebug) logger.debug(`existsCostConsistencyConflict - Cannot compare NaN pricings cost in (${JSON.stringify(plan1.pricing)} and ${JSON.stringify(plan2.pricing)})`);
                                                                     // continue;
                                                                 }
                                                             } else {
-                                                                logger.debug(`existsCostConsistencyConflict - Cannot compare operationCost or overageCost pricings cost in plan '${plan1Name}'|'${plan2Name}' in >${plan1LimitationsName}>${limitations1PathName}>${limitations1PathMethodName}>${limitations1PathMethodMetricName} ('${aux.printLimit(limitations1PathMethodMetricLimit)}' > '${aux.printLimit(limitations2PathMethodMetricLimit)}' AND NOT '${plan1.pricing.cost} >= ${plan2.pricing.cost}')`);
+                                                                if (showDebug) logger.debug(`existsCostConsistencyConflict - Cannot compare operationCost or overageCost pricings cost in plan '${plan1Name}'|'${plan2Name}' in >${plan1LimitationsName}>${limitations1PathName}>${limitations1PathMethodName}>${limitations1PathMethodMetricName} ('${aux.printLimit(limitations1PathMethodMetricLimit)}' > '${aux.printLimit(limitations2PathMethodMetricLimit)}' AND NOT '${plan1.pricing.cost} >= ${plan2.pricing.cost}')`);
                                                                 // continue;
                                                             }
                                                         } else { // FIXME: simple cost is the only supported cost so far
@@ -543,13 +544,14 @@ function isValidPlan(plan, planName) {
 }
 
 // P1   [L4   Valid pricing] A {pricing} is valid if:
-function isValidPricing(globbedPricing, configuration) {
+function isValidPricing(globbedPricing, configuration, debugParam) {
 
     for (const prop in configuration) {
         if (!Object.prototype.hasOwnProperty.call(globbedPricing, prop)) {
             globbedPricing[prop] = configuration[prop];
         }
     }
+    if (debugParam == "true") showDebug = true;
     logger.validation('   CHECKING PRICING VALIDITY...');
 
     if (globbedPricing.capacity) {
@@ -606,9 +608,9 @@ function isValidPricing(globbedPricing, configuration) {
 // ************************** END P1 VALIDITY DETECTION ************************** //
 
 module.exports = {
-    validity: (plan, planName)  =>{
+    validity: (plan, planName, debugParam)  =>{
         logger.clearLog();
-        return isValidPricing(plan, planName);
+        return isValidPricing(plan, planName, debugParam);
     },
     getExplaining: () => {
         return logger.getLog();

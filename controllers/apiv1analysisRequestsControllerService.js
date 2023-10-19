@@ -6,7 +6,7 @@ var analyzer = require("./analyzer/operations");
 
 function validate(req,res){
 
-  var params = req.analysisRequest.value;
+  var params = req.swagger.params.analysisRequest.value;
   console.log("Validity analysis over: <"+params.pricingURL+">");
 
     var result = {
@@ -20,8 +20,8 @@ function validate(req,res){
   var urlV = "https://gist.githubusercontent.com/pafmon/f12d1752f37b595369608aa46dfb5fb8/raw/341c58e33fd1ccc9385276aceb35bcd541ecaae9/valid.yaml";
   var urlI = "https://gist.githubusercontent.com/pafmon/f12d1752f37b595369608aa46dfb5fb8/raw/341c58e33fd1ccc9385276aceb35bcd541ecaae9/invalid.yaml";
 */
-  var pricing; 
-
+  var pricing;
+  
   if (params.pricingURL) {
     request(params.pricingURL,{}, (err, resCode, body) => {    
       if (err) { 
@@ -33,7 +33,7 @@ function validate(req,res){
       
         pricing = yaml.safeLoad(body);
       
-        result.valid = analyzer.validity(pricing,{});
+        result.valid = analyzer.validity(pricing,{},req.query.debug);
         result.explaining = analyzer.getValidityExplainig();
         console.log("   Validity Result -> "+result.valid);
 
@@ -49,7 +49,7 @@ function validate(req,res){
   } else if (params.pricing) {
     try {
       pricing = JSON.parse(JSON.stringify(params.pricing));
-      result.valid = analyzer.validity(pricing,{});
+      result.valid = analyzer.validity(pricing,{},req.query.debug);
       result.explaining = analyzer.getValidityExplainig();
       console.log("   Validity Result -> "+result.valid);
       res.send(result);
@@ -63,7 +63,7 @@ function validate(req,res){
 
 module.exports.addAnalysisRequest = function addAnalysisRequest(req, res, next) {
 
-  var params = req.analysisRequest.value;
+  var params = req.swagger.params.analysisRequest.value;
  
 
   switch(params.operation){

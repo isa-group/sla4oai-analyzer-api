@@ -6,7 +6,7 @@ const { logger } = config;
 
 // ****************************** BEGIN AUX FUNCTIONS ****************************** //
 
-function normalizedPeriod(p, metric, capacity) {
+function normalizedPeriod(p, metric, capacity, showDebug) {
     let unit;
     let amount;
     if (metric && capacity[metric] && capacity[metric].period && capacity[metric].period.unit) {
@@ -15,7 +15,7 @@ function normalizedPeriod(p, metric, capacity) {
     } else {
         unit = 'second';
         amount = 1;
-        logger.debug('Using default normalization unit');
+        if (showDebug) logger.debug('Using default normalization unit');
     }
     switch (unit) {
         case 'millisecond':
